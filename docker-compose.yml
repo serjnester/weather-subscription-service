@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:15.7
+    env_file:
+      - .env
+    ports:
+      - 127.0.0.1:${DB_PORT:-5432}:5432
+    volumes:
+      - postgres:/data/postgres
+    environment:
+      POSTGRES_DB: ${CORE_DB_DATABASE:-postgres}
+      POSTGRES_USER: ${CORE_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${CORE_DB_PASSWORD:-postgres}
+      TZ: 'UTC'
+    healthcheck:
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
+  migrate:
+    image: golang:1.23
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file:
+      - .env
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        go install github.com/pressly/goose/v3/cmd/goose@v3.24.3 && \
+        /go/bin/goose -dir ./internal/storage/migrations postgres \
+        "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=disable" up
+    depends_on:
+      postgres:
+        condition: service_healthy
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+volumes:
+  postgres:

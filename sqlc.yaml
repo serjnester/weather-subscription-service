@@ -1,0 +1,15 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "internal/storage/migrations"
+    queries: "internal/storage/query"
+    gen:
+      go:
+        package: "storage"
+        out: "internal/storage"
+        overrides:
+          - column: "subscriptions.frequency"
+            go_type:
+              import: "github.com/serjnester/weather-subscription-service/domain/enums"
+              package: "enums"
+              type: "Frequency"
