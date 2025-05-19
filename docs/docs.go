@@ -270,7 +270,7 @@ const docTemplate = `{
         "models.Weather": {
             "type": "object",
             "properties": {
-                "Description": {
+                "description": {
                     "type": "string"
                 },
                 "humidity": {

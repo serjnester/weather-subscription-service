@@ -6,7 +6,7 @@ definitions:
     type: object
   models.Weather:
     properties:
-      Description:
+      description:
         type: string
       humidity:
         type: integer
